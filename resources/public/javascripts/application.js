@@ -1,0 +1,3 @@
+/*
+ * workshop-server JavaScript code
+ */
