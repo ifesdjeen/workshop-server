@@ -1,7 +1,7 @@
 (ns workshop-server.submitter
-  (:require [workshop-server.serializable-fn :as sss])
   (:import [java.io PushbackReader])
   (:require [clojail.core :refer [sandbox]]
+            workshop-server.submitter.test-helpers
             [clojail.testers :refer [secure-tester-without-def]]
             [clojure.java.io :as io]))
 
@@ -97,4 +97,26 @@
 (defmacro prepared-test
   [name & body]
   `(def ~(vary-meta name assoc :prepared-test true)
-     (list 'do ~@(for [a body] `(quote ~a)))))
+     (list 'do ~@(for [a body] `(quote ~a))
+           '(use 'workshop-server.submitter.test-helpers)
+           (list 'workshop-server.submitter.test-helpers/run-tests*))))
+
+(defn validate-tests
+  [file test-suite]
+  (let [sb (sandbox-file file)]
+    (sb test-suite)))
+
+(defn validate-code
+  [code test-suite]
+  (let [file (java.io.File/createTempFile "test" ".clj")]
+    (spit file code)
+    (validate-tests file test-suite)))
+
+(defn all-prepared-tests
+  []
+  (->> (all-ns)
+       (map #(vals (ns-interns %)))
+       flatten
+       (filter #(:prepared-test (meta %)))
+       (map #(vector (keyword (:name (meta %))) (var-get %)))
+       (into {})))
