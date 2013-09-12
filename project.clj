@@ -6,7 +6,8 @@
                  [clojail "1.0.6"]
                  [org.clojure/tools.nrepl "0.2.3"]
                  [com.novemberain/monger "1.6.0"]
-                 [org.clojure/tools.cli "0.2.2"]]
+                 [org.clojure/tools.cli "0.2.2"]
+                 [clj-http "0.7.6"]]
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]]}}
   :source-paths ["src"]
   :resource-paths ["resources"]
