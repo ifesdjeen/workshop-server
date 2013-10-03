@@ -25,13 +25,14 @@
     (reset-entities!))
 
   (testing "Task is unrecognised"
-    (let [res (submit-task {:form-params {"code" "(ns asd)" "task" "some-task"}})]
+    (let [res (submit-task {:form-params {"code" "(ns asd)"}
+                            :route-params {:task "some-task"}})]
       (is (= 400 (:status res))))
     (reset-entities!))
 
   (testing "Code is nice and clean"
-    (let [res (submit-task {:form-params {"code" (slurp "resources/test/test_namespace.clj")
-                                          "task" "getting-started-test"}})]
+    (let [res (submit-task {:form-params {"code" (slurp "resources/test/test_namespace.clj")}
+                            :route-params {:task "getting-started-test"}})]
       (is (= 200 (:status res)))
       (is (= 1 (get-in res [:response-hash :results :pass]))))
     (reset-entities!))

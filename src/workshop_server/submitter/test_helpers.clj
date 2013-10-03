@@ -3,7 +3,7 @@
 
 (defn run-tests*
   []
-  (let [s (new java.io.StringWriter)]
+  (let [s (java.io.StringWriter.)]
     (binding [*test-out* s]
       (let [results (run-tests)]
         (assoc results :report (str s))))))

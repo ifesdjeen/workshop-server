@@ -2,6 +2,7 @@
   (:import [java.io PushbackReader])
   (:require [clojail.core :refer [sandbox]]
             workshop-server.submitter.test-helpers
+            clojure.test
             [clojail.testers :refer [secure-tester-without-def]]
             [clojure.java.io :as io]))
 
@@ -75,6 +76,7 @@
     (prepare-form 'require ~requires)
     (prepare-imports ~imports)
     (prepare-form 'use ~uses)
+    (prepare-form 'use ['clojure.test])
     (prepare-form 'refer ~refers)))
 
 (defn sandbox-file
@@ -87,10 +89,11 @@
         imports  (extract-import (read-ns-form file))
         _        (prepare-ns requires uses refers)
         ns-init  (prepare-ns-wrapper requires uses refers imports)
-        sb       (sandbox [] :init ns-init)]
+        sb       (sandbox [] :init ns-init :max-defs 1000)]
 
     (doseq [f contents]
       (sb f))
+
 
     sb))
 
@@ -100,6 +103,15 @@
      (list 'do ~@(for [a body] `(quote ~a))
            '(use 'workshop-server.submitter.test-helpers)
            (list 'workshop-server.submitter.test-helpers/run-tests*))))
+
+(defn prepared-tests-form-file
+  [n]
+  (let [contents (read-contents (format "src/workshop_server/prepared_tests/%s.clj" n))]
+    `(list 'do
+           '(use 'workshop-server.submitter.test-helpers)
+           '(use 'clojure.test)
+           ~@contents
+           '(workshop-server.submitter.test-helpers/run-tests*))))
 
 (defn validate-tests
   [file test-suite]

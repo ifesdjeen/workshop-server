@@ -6,7 +6,13 @@
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.stacktrace :refer [wrap-stacktrace]]
 
-            [workshop-server.routes :as routes]))
+            [workshop-server.routes :as routes]
+            [bultitude.core :as bultitude]))
+
+(defn require-prepared-tests
+  [^String app]
+  (doseq [ns (bultitude/namespaces-on-classpath :prefix "workshop-server.prepared-tests")]
+    (require ns)))
 
 (def app
   (-> (api routes/main-routes)

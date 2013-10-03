@@ -1,7 +1,8 @@
 (ns workshop-server.submitter-test
   (:use clojure.test)
   (:require [workshop-server.submitter :refer [sandbox-file prepared-test validate-tests validate-code]]
-            clojure.test.tap))
+            clojure.test.tap
+            [clojail.core :refer [sandbox]]))
 
 (prepared-test read-file-prepared-success
                (deftest success-test

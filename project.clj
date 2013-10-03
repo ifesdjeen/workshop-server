@@ -2,12 +2,13 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [clojurewerkz/gizmo "1.0.0-alpha2-SNAPSHOT"]
+                 [clojurewerkz/gizmo "1.0.0-alpha3-SNAPSHOT"]
                  [clojail "1.0.6"]
                  [org.clojure/tools.nrepl "0.2.3"]
                  [com.novemberain/monger "1.6.0"]
                  [org.clojure/tools.cli "0.2.2"]
-                 [clj-http "0.7.6"]]
+                 [clj-http "0.7.6"]
+                 [clj-time "0.6.0"]]
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]]}}
   :source-paths ["src"]
   :resource-paths ["resources"]

@@ -7,6 +7,12 @@
   {:render :html
    :widgets {:main-content 'workshop-server.widgets.home/index-content}})
 
+(defn show-user
+  [request]
+  {:render :html
+   :token  (get-in request [:route-params :token])
+   :widgets {:main-content 'workshop-server.widgets.home/task-report}})
+
 (defn json-error
   [& reasons]
   {:render :json :status 400
@@ -27,15 +33,28 @@
      :else                (json-success {:success true :token (e/register name)}))))
 
 (defn submit-task
-  [{:keys [form-params]}]
+  [{:keys [form-params route-params] :as all}]
   (let [code       (get form-params "code")
-        task       (get form-params "task")
+        task       (get route-params :task)
+        token      (get route-params :token)
         test-suite (get (s/all-prepared-tests) (keyword task))]
     (cond
-     (empty? code)     (json-error "Please provide us with some code.")
-     (empty? task)     (json-error "Task name can't be empty.")
-     (nil? test-suite) (json-error (str "Can't find test suite for " task))
-     :else             (try
-                         (json-success {:success true :results (s/validate-code code test-suite)})
-                         (catch Exception e
-                           (json-error "Something bad has happened: " (.getMessage e)))))))
+     (empty? code)                 (json-error "Please provide us with some code.")
+     (empty? token)                (json-error "Submission token can't be empty")
+     (not (e/token-exists? token)) (json-error "We don't know that token")
+     (empty? task)                 (json-error "Task name can't be empty.")
+     (nil? test-suite)             (json-error (str "Can't find test suite for " task))
+     :else                         (try
+                                     (let [results (s/validate-code code test-suite)]
+                                       (if (and (= 0 (:error results))
+                                                (= 0 (:fail results)))
+                                         (do
+                                           (e/successfull-attempt token task results)
+                                           (json-success {:success true :results results}))
+                                         (do
+                                           (e/failed-attempt token task results)
+                                           (json-success {:success false :results results}))))
+                                     (catch Exception e
+                                       (let [message (.getMessage e)]
+                                         (e/failed-attempt token task message)
+                                         (json-error "Something bad has happened: " message)))))))

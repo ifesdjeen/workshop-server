@@ -1,8 +1,7 @@
 (ns ns-def
   (:require clojure.set)
   (:require [clojure.pprint :refer [pprint]])
-  (:import java.util.Date)
-  (:use clojure.test))
+  (:import java.util.Date))
 
 (defn my-reduce
   [f default coll]
