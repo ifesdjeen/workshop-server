@@ -6,7 +6,8 @@
              [core :refer [require-widgets require-snippets require-handlers
                            require-services register-snippet-reload]]
              [config :refer [load-config!]]
-             [service :refer [start-all! all-services]]]))
+             [service :refer [start-all! all-services]]]
+            [workshop-server.entities :as e]))
 
 (alter-var-root #'*out* (constantly *out*))
 
@@ -21,4 +22,5 @@
   (require-services "workshop-server")
   (register-snippet-reload "workshop-server")
 
+  (e/initialise-submission-attempts)
   (start-all!))

@@ -5,31 +5,21 @@
     </div>
 
     <div snippet="people-online">
-      <h2 snippet="people-online-count">Currently we have ${people-online-count} people online</h2>
+      <h2>Currently we have ${people-online-count} people online</h2>
     </div>
 
-    <div snippet="task-completion">
-      <h2>Task completion and progress</h2>
-
-      <table snippet="task-completion-table" class="table striped">
-        <thead>
-          <tr>
-            <td>Username</td>
-            <td>Completed Tasks</td>
-            <td>Attempts Count</td>
-          </tr>
-        </thead>
-        <tbody>
-          <tr snippet="task-completion-row">
-            <td><a href="${user-link}">${username}</a></td>
-            <td>${completed-tasks}</td>
-            <td>${attempts-count}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div snippet="test-runs">
+      <h2>${test-runs} test runs were performed</h2>
     </div>
 
+    <div snippet="successfull-tests">
+      <h2>${successfull-tests} tests already passed</h2>
+    </div>
 
+    <div snippet="functions-in-progress">
+      <h2>Functions still in progress:</h2>
+      <pre><code>${functions-in-progress}</code></pre>
+    </div>
 
   </div>
 

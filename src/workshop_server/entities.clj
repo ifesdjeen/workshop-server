@@ -1,77 +1,53 @@
 (ns workshop-server.entities
   (:import java.util.UUID)
   (:require [clojure.string :refer [join]]
-            [workshop-server.routes :as routes]))
+            [clj-time.core :as clj-time]
+            [clj-time.coerce :as time-coerce]))
 
-(def defaults {:tokens {} :task-completition {} :submission-attempts {}})
+(defonce submission-attempts (atom []))
 
-(defonce entities (atom defaults))
+(defn add-submission-attempt
+  [attempt]
+  (spit "reports" attempt :append true)
+  (swap! submission-attempts conj attempt))
 
-(defn reset-entities!
+(defn initialise-submission-attempts
   []
-  (reset! entities defaults))
+  (when (.exists (clojure.java.io/file "reports"))
+    (with-open [r (java.io.PushbackReader.
+                   (clojure.java.io/reader "reports"))]
+      (binding [*read-eval* false]
+        (loop [form (try (read r) (catch Exception e ::end))]
+          (swap! submission-attempts conj form)
+          (let [next (try (read r) (catch Exception e ::end))]
+            (if-not (= ::end next)
+              (recur next))))))))
 
-(defn register
-  [name]
-  (let [token (.toString (java.util.UUID/randomUUID))]
-    (swap! entities assoc-in [:tokens token] name)
-    token))
-
-(def all-entities #(deref entities))
-(def tokens #(:tokens (all-entities)))
-
-(defn name-taken?
-  [name]
-  (some #(= name %) (vals (tokens))))
-
-(defn token-exists?
-  [token]
-  ((-> (tokens) keys set) token))
-
-(defn submission-attempt
-  [token task success results]
-  (swap! entities
-         (fn [m] (update-in m [:submission-attempts token] (fn [tasks]
-                                                            (let [when (java.util.Date.)
-                                                                  m    {:token   token
-                                                                        :task    task
-                                                                        :time    when
-                                                                        :success success
-                                                                        :results results}]
-                                                              (if (empty? tasks)
-                                                                (set [m])
-                                                                (conj tasks m))))))))
-
-(defn successfull-attempt
-  [token task results]
-  (submission-attempt token task true results))
-
-(defn failed-attempt
-  [token task results]
-  (submission-attempt token task false results))
-
-(defn find-name-for-token
-  [token]
-  (get (tokens) token))
-
-(defn registered-people
+(defn unique-tokens
   []
-  (vals (tokens)))
+  (count (distinct (map :token @submission-attempts))))
 
-(defn task-completion-report
+(defn test-runs
   []
-  (map (fn [[token attempts]]
-         {:username        (find-name-for-token token)
-          :user-link       (routes/show-user-path :token token)
-          :attempts-count  (str (count attempts))
-          :completed-tasks (join ", " (distinct (map :task (filter :success attempts))))})
-       (:submission-attempts @entities)))
+  (count @submission-attempts))
 
-(defn user-task-report
-  [token]
-  (map
-   (fn [item]
-     {:task (:task item)
-      :status (:success item)
-      :report (get-in item [:results :report])})
-   (get (:submission-attempts @entities) token)))
+(defn successfull-tests
+  []
+  (try
+    (->> submission-attempts
+        deref
+        (map (comp  #(Integer/parseInt %) :pass))
+        (reduce +))
+    (catch Exception e
+      0)))
+
+(defn functions-in-progress
+  []
+  (let [mins-ago (clj-time/ago (clj-time/minutes 5))]
+    (->> submission-attempts
+         deref
+         (filter #(clj-time/after? (time-coerce/from-date (:created-at %)) mins-ago))
+         (map :not-implemented-fn-names)
+         flatten
+         distinct
+         (join ", "))))

@@ -5,11 +5,7 @@
 
 (defwidget index-content
   :view snippets/index-snippet
-  :fetch (fn [_] {:people-online (e/registered-people)
-                 :task-completition-reports (e/task-completion-report)}))
-
-
-(defwidget task-report
-  :view snippets/task-report
-  :fetch (fn [{:keys [token]}]
-           (e/user-task-report token)))
+  :fetch (fn [_] {:people-online-count (e/unique-tokens)
+                 :test-runs (e/test-runs)
+                 :successfull-tests (e/successfull-tests)
+                 :functions-in-progress (e/functions-in-progress)}))
